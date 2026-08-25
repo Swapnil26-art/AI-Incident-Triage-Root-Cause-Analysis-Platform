@@ -13,7 +13,6 @@ import com.swapnil.incident.Log;
 
 @RestController
 @RequestMapping("/api/ai")
-@CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:5173}")
 public class AiController {
 
     @Autowired

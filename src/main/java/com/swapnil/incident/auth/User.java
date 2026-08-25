@@ -18,7 +18,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
-    private Role role = Role.VIEWER;
+    private Role role = Role.ROLE_VIEWER;
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;

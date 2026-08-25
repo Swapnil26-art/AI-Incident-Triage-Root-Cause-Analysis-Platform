@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/incidents")
-@CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:5173}")
 public class IncidentController {
 
     @Autowired
@@ -33,7 +32,29 @@ public class IncidentController {
 
         List<Incident> incidents;
 
-        if (category != null && !category.isEmpty()) {
+        if (category != null && !category.isEmpty()
+                && severity != null && !severity.isEmpty()
+                && status != null && !status.isEmpty()) {
+            incidents = incidentRepository.findByCategoryAndSeverityAndStatus(
+                    Incident.Category.valueOf(category.toUpperCase()),
+                    Incident.Severity.valueOf(severity.toUpperCase()),
+                    Incident.Status.valueOf(status.toUpperCase()));
+        } else if (category != null && !category.isEmpty()
+                && severity != null && !severity.isEmpty()) {
+            incidents = incidentRepository.findByCategoryAndSeverity(
+                    Incident.Category.valueOf(category.toUpperCase()),
+                    Incident.Severity.valueOf(severity.toUpperCase()));
+        } else if (category != null && !category.isEmpty()
+                && status != null && !status.isEmpty()) {
+            incidents = incidentRepository.findByCategoryAndStatus(
+                    Incident.Category.valueOf(category.toUpperCase()),
+                    Incident.Status.valueOf(status.toUpperCase()));
+        } else if (severity != null && !severity.isEmpty()
+                && status != null && !status.isEmpty()) {
+            incidents = incidentRepository.findBySeverityAndStatus(
+                    Incident.Severity.valueOf(severity.toUpperCase()),
+                    Incident.Status.valueOf(status.toUpperCase()));
+        } else if (category != null && !category.isEmpty()) {
             incidents = incidentRepository.findByCategory(Incident.Category.valueOf(category.toUpperCase()));
         } else if (severity != null && !severity.isEmpty()) {
             incidents = incidentRepository.findBySeverity(Incident.Severity.valueOf(severity.toUpperCase()));

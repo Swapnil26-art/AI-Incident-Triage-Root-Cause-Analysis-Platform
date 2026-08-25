@@ -155,7 +155,16 @@ export default function DashboardPage() {
 }
 
 function getStatusColor(status) {
-  return statusColors[status] || '#9CA3AF'
+  const hexColors = {
+    OPEN: '#3b82f6',
+    INVESTIGATING: '#eab308',
+    AI_ANALYZED: '#a855f7',
+    WAITING_APPROVAL: '#f97316',
+    RESOLVED: '#22c55e',
+    ESCALATED: '#ef4444',
+    CLOSED: '#6b7280',
+  }
+  return hexColors[status] || '#9CA3AF'
 }
 
 function formatStatus(status) {

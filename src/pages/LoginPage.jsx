@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { login } from '../services/auth'
+import { login, register } from '../services/auth'
 
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('')
@@ -16,7 +16,6 @@ export default function LoginPage({ onLogin }) {
     try {
       let data
       if (isRegister) {
-        const { register } = await import('../services/auth')
         data = await register(username, password, 'ROLE_ENGINEER')
       } else {
         data = await login(username, password)

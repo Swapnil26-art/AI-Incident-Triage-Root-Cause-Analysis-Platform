@@ -14,7 +14,6 @@ import com.swapnil.incident.IncidentRepository;
 
 @RestController
 @RequestMapping("/api/dashboard")
-@CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:5173}")
 public class DashboardController {
 
     @Autowired
