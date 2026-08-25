@@ -1,0 +1,21 @@
+{
+  "name": "AI-Incident-Triage",
+  "version": "1.0.0",
+  "dependencies": {
+    "axios": "1.6.2",
+    "Chart.js": "3.9.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-router-dom": "6.20.0",
+    "vite": "4.4.0",
+    "vite-plugin-react": "4.1.0",
+    "tailwindcss": "3.3.3"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {},
+  "main": "src/index.html"
+}
