@@ -1,46 +1,100 @@
 package com.swapnil.incident.dashboard;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.swapnil.incident.incident.entity.Incident;
-import com.swapnil.incident.incident.repository.IncidentRepository;
-
-import java.util.List;
+import com.swapnil.incident.Incident;
+import com.swapnil.incident.IncidentRepository;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:5173}")
 public class DashboardController {
+
     @Autowired
     private IncidentRepository incidentRepository;
 
     @GetMapping
-    public Map<String, Object> getIncidentMetrics() {
+    public ResponseEntity<Map<String, Object>> getIncidentMetrics() {
         List<Incident> incidents = incidentRepository.findAll();
 
-        int total = incidents.size();
-        int open = (int) incidents.stream().filter(i -> i.getStatus() == Incident.Status.OPEN).count();
-        int p1 = (int) incidents.stream().filter(i -> i.getSeverity() == Incident.Severity.P1).count();
-        int p2 = (int) incidents.stream().filter(i -> i.getSeverity() == Incident.Severity.P2).count();
-        int resolved = (int) incidents.stream().filter(i -> i.getStatus() == Incident.Status.RESOLVED).count();
+        Map<String, Object> metrics = new LinkedHashMap<>();
+        metrics.put("total_incidents", incidents.size());
+        metrics.put("open_incidents", incidentRepository.countByStatus(Incident.Status.OPEN));
+        metrics.put("investigating_incidents", incidentRepository.countByStatus(Incident.Status.INVESTIGATING));
+        metrics.put("ai_analyzed_incidents", incidentRepository.countByStatus(Incident.Status.AI_ANALYZED));
+        metrics.put("resolved_incidents", incidentRepository.countByStatus(Incident.Status.RESOLVED));
+        metrics.put("p1_incidents", incidentRepository.countBySeverity(Incident.Severity.P1));
+        metrics.put("p2_incidents", incidentRepository.countBySeverity(Incident.Severity.P2));
+        metrics.put("p3_incidents", incidentRepository.countBySeverity(Incident.Severity.P3));
+        metrics.put("p4_incidents", incidentRepository.countBySeverity(Incident.Severity.P4));
 
-        return Map.of(
-            "total_incidents", total,
-            "open_incidents", open,
-            "p1_incidents", p1,
-            "p2_incidents", p2,
-            "resolved_incidents", resolved
-        );
+        return ResponseEntity.ok(metrics);
     }
 
     @GetMapping("/incidents-by-category")
-    public List<Map<String, String>> getIncidentsByCategory() {
-        return incidentRepository.findAll().stream()
-            .map(i -> Map.of("category", i.getCategory().name(), "count", 1))
-            .collect(Collectors.groupingBy(Map::get,
-                Collectors.counting()))
-            .entrySet().stream()
-            .map(e -> Map.of("category", e.getKey(), "count", e.getValue()))
-            .toList();
+    public ResponseEntity<List<Map<String, Object>>> getIncidentsByCategory() {
+        List<Incident> incidents = incidentRepository.findAll();
+
+        List<Map<String, Object>> result = incidents.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getCategory().name(),
+                        Collectors.counting()))
+                .entrySet().stream()
+                .map(e -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("category", e.getKey());
+                    map.put("count", e.getValue());
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/incidents-by-severity")
+    public ResponseEntity<List<Map<String, Object>>> getIncidentsBySeverity() {
+        List<Incident> incidents = incidentRepository.findAll();
+
+        List<Map<String, Object>> result = incidents.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getSeverity().name(),
+                        Collectors.counting()))
+                .entrySet().stream()
+                .map(e -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("severity", e.getKey());
+                    map.put("count", e.getValue());
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/incidents-by-status")
+    public ResponseEntity<List<Map<String, Object>>> getIncidentsByStatus() {
+        List<Incident> incidents = incidentRepository.findAll();
+
+        List<Map<String, Object>> result = incidents.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getStatus().name(),
+                        Collectors.counting()))
+                .entrySet().stream()
+                .map(e -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("status", e.getKey());
+                    map.put("count", e.getValue());
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
     }
 }

@@ -20,6 +20,9 @@ public class User {
     @Column(name = "role", nullable = false)
     private Role role = Role.VIEWER;
 
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -27,8 +30,8 @@ public class User {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     public enum Role {
-        ADMIN,
-        ENGINEER,
-        VIEWER
+        ROLE_ADMIN,
+        ROLE_ENGINEER,
+        ROLE_VIEWER
     }
 }

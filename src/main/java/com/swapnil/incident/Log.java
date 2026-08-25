@@ -1,12 +1,17 @@
 package com.swapnil.incident;
 
 import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "logs")
 @Data
+@ToString(exclude = "incident")
+@EqualsAndHashCode(exclude = "incident")
 public class Log {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,12 +19,15 @@ public class Log {
     private Long id;
 
     @Column(name = "timestamp", nullable = false)
-    private LocalDateTime timestamp;
+    private LocalDateTime timestamp = LocalDateTime.now();
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
 
-    @ManyToOne
+    @Column(name = "author")
+    private String author;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "incident_id", nullable = false)
     private Incident incident;
 }
