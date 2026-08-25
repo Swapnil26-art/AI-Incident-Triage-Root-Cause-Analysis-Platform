@@ -24,6 +24,7 @@ export default function IncidentListPage() {
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ category: '', severity: '', status: '' })
   const [search, setSearch] = useState('')
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     loadIncidents()
@@ -31,11 +32,13 @@ export default function IncidentListPage() {
 
   const loadIncidents = async () => {
     setLoading(true)
+    setError(null)
     try {
       const data = await getIncidents(filters)
       setIncidents(data)
     } catch (err) {
       console.error('Failed to load incidents:', err)
+      setError('Failed to connect to the server. Please ensure the backend is running and VITE_API_URL is configured correctly.')
     } finally {
       setLoading(false)
     }
@@ -119,6 +122,19 @@ export default function IncidentListPage() {
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <p className="text-gray-700 font-medium mb-1">Connection Error</p>
+            <p className="text-sm text-gray-500 mb-3">{error}</p>
+            <button onClick={loadIncidents} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+              Retry
+            </button>
           </div>
         ) : filteredIncidents.length === 0 ? (
           <div className="text-center py-12 text-gray-500">

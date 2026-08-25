@@ -29,6 +29,7 @@ export default function IncidentDetailPage() {
   const [logAuthor, setLogAuthor] = useState('')
   const [addingLog, setAddingLog] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     loadIncident()
@@ -40,6 +41,7 @@ export default function IncidentDetailPage() {
       setIncident(data)
     } catch (err) {
       console.error('Failed to load incident:', err)
+      setError('Failed to connect to the server. Please ensure the backend is running.')
     } finally {
       setLoading(false)
     }
@@ -105,13 +107,35 @@ export default function IncidentDetailPage() {
     )
   }
 
-  if (!incident) {
+  if (!incident && !error) {
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500 text-lg">Incident not found</p>
         <button onClick={() => navigate('/incidents')} className="mt-4 text-blue-600 hover:text-blue-800">
           Back to Incidents
         </button>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <p className="text-gray-700 font-medium mb-1">Connection Error</p>
+        <p className="text-sm text-gray-500 mb-4">{error}</p>
+        <div className="flex gap-2 justify-center">
+          <button onClick={loadIncident} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+            Retry
+          </button>
+          <button onClick={() => navigate('/incidents')} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+            Back to Incidents
+          </button>
+        </div>
       </div>
     )
   }

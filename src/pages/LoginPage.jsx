@@ -24,7 +24,7 @@ export default function LoginPage({ onLogin }) {
       localStorage.setItem('user', JSON.stringify(data))
       onLogin(data)
     } catch (err) {
-      setError(err.response?.data?.error || 'Authentication failed')
+      setError(err.displayMessage || err.response?.data?.error || 'Authentication failed')
     } finally {
       setLoading(false)
     }

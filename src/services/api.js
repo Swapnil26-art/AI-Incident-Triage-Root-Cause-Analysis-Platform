@@ -23,6 +23,9 @@ api.interceptors.response.use(
       localStorage.removeItem('user')
       window.location.href = '/login'
     }
+    if (!error.response) {
+      error.displayMessage = 'Cannot connect to the server. Please check that VITE_API_URL is set correctly and the backend is running.'
+    }
     return Promise.reject(error)
   }
 )

@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [bySeverity, setBySeverity] = useState([])
   const [byStatus, setByStatus] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     loadData()
@@ -43,6 +44,7 @@ export default function DashboardPage() {
       setByStatus(stat)
     } catch (err) {
       console.error('Failed to load dashboard:', err)
+      setError('Failed to connect to the server. Please ensure the backend is running and VITE_API_URL is configured correctly.')
     } finally {
       setLoading(false)
     }
@@ -52,6 +54,25 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Dashboard</h3>
+          <p className="text-sm text-gray-500 mb-4">{error}</p>
+          <button onClick={loadData} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+            Retry
+          </button>
+        </div>
       </div>
     )
   }
