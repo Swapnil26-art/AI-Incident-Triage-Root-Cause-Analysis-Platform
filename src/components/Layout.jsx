@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, AlertTriangle, Brain, Gamepad2, LogOut, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, AlertTriangle, Brain, Gamepad2, BarChart3, LogOut, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { path: '/incidents', label: 'Incidents', icon: AlertTriangle },
   { path: '/ai-chat', label: 'AI Copilot', icon: Brain },
   { path: '/game-day', label: 'Game Day', icon: Gamepad2 },
+  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
 const roleColors = {

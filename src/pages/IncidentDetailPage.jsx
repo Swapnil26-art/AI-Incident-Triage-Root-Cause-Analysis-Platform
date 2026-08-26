@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Brain, Clock, MessageSquare, AlertTriangle, Sparkles, Send, ChevronRight } from 'lucide-react'
 import { getIncident, updateIncidentStatus, addIncidentLog, analyzeIncident } from '../services/incidents'
+import { useToast } from '../components/Toast'
 
 const SEVERITY_COLORS = {
   P1: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
@@ -30,6 +31,7 @@ function formatDate(d) { return d ? new Date(d).toLocaleString('en-US', { month:
 export default function IncidentDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { addToast } = useToast()
   const [incident, setIncident] = useState(null)
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
@@ -67,7 +69,7 @@ export default function IncidentDetailPage() {
           author: 'AI-ANALYSIS'
         }]
       }))
-    } catch (err) { console.error(err) }
+    } catch (err) { addToast('AI analysis failed. Please try again.', 'error') }
     finally { setAnalyzing(false) }
   }
 
@@ -76,7 +78,8 @@ export default function IncidentDetailPage() {
     try {
       const updated = await updateIncidentStatus(id, newStatus)
       setIncident(updated)
-    } catch (err) { console.error(err) }
+      addToast(`Status updated to ${formatStatus(newStatus)}`, 'success')
+    } catch (err) { addToast('Failed to update status', 'error') }
     finally { setUpdatingStatus(false) }
   }
 
@@ -89,7 +92,8 @@ export default function IncidentDetailPage() {
       setIncident(updated)
       setLogMessage('')
       setLogAuthor('')
-    } catch (err) { console.error(err) }
+      addToast('Log entry added', 'success')
+    } catch (err) { addToast('Failed to add log entry', 'error') }
     finally { setAddingLog(false) }
   }
 

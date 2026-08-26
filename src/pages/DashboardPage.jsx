@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, Flame, TrendingUp, RefreshCw } from 'lucide-react'
 import { getDashboardMetrics, getIncidentsByCategory, getIncidentsBySeverity, getIncidentsByStatus } from '../services/dashboard'
 import { getIncidents } from '../services/incidents'
+import { useToast } from '../components/Toast'
 
 const SEVERITY_COLORS = { P1: '#f43f5e', P2: '#f59e0b', P3: '#06b6d4', P4: '#10b981' }
 const STATUS_COLORS = {
@@ -24,6 +25,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function DashboardPage() {
+  const { addToast } = useToast()
   const [metrics, setMetrics] = useState(null)
   const [category, setCategory] = useState([])
   const [severity, setSeverity] = useState([])

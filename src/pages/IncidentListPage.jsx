@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Filter, Plus, AlertTriangle, ExternalLink } from 'lucide-react'
 import { getIncidents } from '../services/incidents'
+import CreateIncidentModal from '../components/CreateIncidentModal'
 
 const SEVERITY_COLORS = {
   P1: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
@@ -46,6 +47,7 @@ export default function IncidentListPage() {
   const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState({ severity: '', status: '', category: '' })
+  const [showCreate, setShowCreate] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -70,9 +72,9 @@ export default function IncidentListPage() {
           <h1 className="text-2xl font-bold text-white">Incidents</h1>
           <p className="text-dark-200 mt-1">{filtered.length} incidents found</p>
         </div>
-        <Link to="/incidents/new" className="btn-primary flex items-center gap-2">
+        <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" /> New Incident
-        </Link>
+        </button>
       </div>
 
       {/* Filters */}
@@ -175,6 +177,12 @@ export default function IncidentListPage() {
           )}
         </div>
       )}
+
+      <CreateIncidentModal
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={(inc) => setIncidents(prev => [inc, ...prev])}
+      />
     </div>
   )
 }
