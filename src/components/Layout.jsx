@@ -1,14 +1,16 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, AlertTriangle, Brain, Gamepad2, BarChart3, LogOut, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, AlertTriangle, Brain, Gamepad2, BarChart3, Clock, Network, LogOut, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/incidents', label: 'Incidents', icon: AlertTriangle },
   { path: '/ai-chat', label: 'AI Copilot', icon: Brain },
-  { path: '/game-day', label: 'Game Day', icon: Gamepad2 },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { path: '/service-map', label: 'Service Map', icon: Network },
+  { path: '/oncall', label: 'On-Call', icon: Clock },
+  { path: '/game-day', label: 'Game Day', icon: Gamepad2 },
 ]
 
 const roleColors = {
@@ -25,13 +27,11 @@ export default function Layout({ children, user, onLogout }) {
     <div className="min-h-screen flex bg-dark-900">
       <div className="noise-overlay" />
 
-      {/* Sidebar */}
       <motion.aside
         animate={{ width: collapsed ? 72 : 256 }}
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         className="relative flex flex-col border-r border-white/[0.06] bg-dark-800/40 backdrop-blur-xl z-10"
       >
-        {/* Logo */}
         <div className="p-4 flex items-center gap-3 border-b border-white/[0.06]">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center flex-shrink-0 shadow-glow-cyan">
             <Shield className="w-5 h-5 text-white" />
@@ -51,8 +51,7 @@ export default function Layout({ children, user, onLogout }) {
           </AnimatePresence>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(item.path))
@@ -82,7 +81,6 @@ export default function Layout({ children, user, onLogout }) {
           })}
         </nav>
 
-        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-3 top-20 w-6 h-6 bg-dark-700 border border-white/10 rounded-full flex items-center justify-center text-dark-300 hover:text-white hover:border-cyan-500/30 transition-all z-20"
@@ -90,7 +88,6 @@ export default function Layout({ children, user, onLogout }) {
           {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
         </button>
 
-        {/* User section */}
         <div className="p-3 border-t border-white/[0.06]">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
@@ -133,7 +130,6 @@ export default function Layout({ children, user, onLogout }) {
         </div>
       </motion.aside>
 
-      {/* Main */}
       <main className="flex-1 overflow-auto">
         <div className="p-8 max-w-[1600px] mx-auto">
           {children}

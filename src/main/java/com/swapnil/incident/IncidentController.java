@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import com.swapnil.incident.websocket.IncidentEventHandler;
+import com.swapnil.incident.notification.P1CreatedEvent;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 @RestController
 @RequestMapping("/api/incidents")
@@ -20,6 +23,9 @@ public class IncidentController {
 
     @Autowired
     private IncidentEventHandler eventHandler;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     private final AtomicLong ticketCounter = new AtomicLong(1000);
 
@@ -74,6 +80,9 @@ public class IncidentController {
         Incident saved = incidentRepository.save(incident);
         eventHandler.broadcastIncidentUpdate(saved, "CREATED");
         eventHandler.broadcastDashboardUpdate();
+        if (saved.getSeverity() == Incident.Severity.P1) {
+            eventPublisher.publishEvent(new P1CreatedEvent(this, saved));
+        }
         return ResponseEntity.ok(saved);
     }
 

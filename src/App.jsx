@@ -8,6 +8,8 @@ import IncidentDetailPage from './pages/IncidentDetailPage'
 import AiChatPage from './pages/AiChatPage'
 import GameDayPage from './pages/GameDayPage'
 import AnalyticsPage from './pages/AnalyticsPage'
+import OnCallPage from './pages/OnCallPage'
+import ServiceMapPage from './pages/ServiceMapPage'
 import Layout from './components/Layout'
 
 function ProtectedRoute({ children }) {
@@ -80,6 +82,20 @@ export default function App() {
             <ProtectedRoute>
               <Layout user={user} onLogout={handleLogout}>
                 <AnalyticsPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/oncall" element={
+            <ProtectedRoute>
+              <Layout user={user} onLogout={handleLogout}>
+                <OnCallPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/service-map" element={
+            <ProtectedRoute>
+              <Layout user={user} onLogout={handleLogout}>
+                <ServiceMapPage />
               </Layout>
             </ProtectedRoute>
           } />

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, CartesianGrid } from 'recharts'
-import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, Flame, TrendingUp, RefreshCw } from 'lucide-react'
-import { getDashboardMetrics, getIncidentsByCategory, getIncidentsBySeverity, getIncidentsByStatus } from '../services/dashboard'
+import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, Flame, TrendingUp, RefreshCw, Shield } from 'lucide-react'
+import { getDashboardMetrics, getIncidentsByCategory, getIncidentsBySeverity, getIncidentsByStatus, getSlaCompliance } from '../services/dashboard'
 import { getIncidents } from '../services/incidents'
 import { useToast } from '../components/Toast'
+import api from '../services/api'
 
 const SEVERITY_COLORS = { P1: '#f43f5e', P2: '#f59e0b', P3: '#06b6d4', P4: '#10b981' }
 const STATUS_COLORS = {
@@ -31,6 +32,8 @@ export default function DashboardPage() {
   const [severity, setSeverity] = useState([])
   const [status, setStatus] = useState([])
   const [incidents, setIncidents] = useState([])
+  const [onCall, setOnCall] = useState(null)
+  const [sla, setSla] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -38,11 +41,14 @@ export default function DashboardPage() {
     setLoading(true)
     setError(null)
     try {
-      const [m, cat, sev, sta, inc] = await Promise.all([
+      const [m, cat, sev, sta, inc, oc, slaData] = await Promise.all([
         getDashboardMetrics(), getIncidentsByCategory(), getIncidentsBySeverity(),
-        getIncidentsByStatus(), getIncidents()
+        getIncidentsByStatus(), getIncidents(),
+        api.get('/oncall/current').then(r => r.data).catch(() => ({ active: false })),
+        getSlaCompliance().catch(() => null)
       ])
       setMetrics(m); setCategory(cat); setSeverity(sev); setStatus(sta); setIncidents(inc)
+      setOnCall(oc); setSla(slaData)
     } catch (err) {
       console.error(err)
       setError('Failed to load dashboard. Is the backend running?')
@@ -131,6 +137,40 @@ export default function DashboardPage() {
           )
         })}
       </div>
+
+      {/* On-Call + SLA Row */}
+      {(onCall?.active || sla) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {onCall?.active && (
+            <div className="glass-card p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-cyan-400 font-semibold uppercase">On-Call Now</p>
+                <p className="text-sm font-semibold text-white">{onCall.username} <span className="text-dark-300 font-normal">({onCall.role})</span></p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-dark-300">Remaining</p>
+                <p className="text-sm font-bold text-white">{onCall.hoursRemaining}h</p>
+              </div>
+            </div>
+          )}
+          {sla && (
+            <div className="glass-card p-4 flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${sla.overall_compliance_pct >= 90 ? 'bg-emerald-500/10' : sla.overall_compliance_pct >= 70 ? 'bg-amber-500/10' : 'bg-rose-500/10'}`}>
+                <span className={`text-lg font-bold ${sla.overall_compliance_pct >= 90 ? 'text-emerald-400' : sla.overall_compliance_pct >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
+                  {sla.overall_compliance_pct}%
+                </span>
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-dark-300 font-semibold uppercase">SLA Compliance</p>
+                <p className="text-sm text-dark-200">{sla.total_resolved} incidents resolved</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

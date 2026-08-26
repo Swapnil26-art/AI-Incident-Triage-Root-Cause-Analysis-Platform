@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Brain, Clock, MessageSquare, AlertTriangle, Sparkles, Send, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Brain, Clock, MessageSquare, AlertTriangle, Sparkles, Send, ChevronRight, FileText } from 'lucide-react'
 import { getIncident, updateIncidentStatus, addIncidentLog, analyzeIncident } from '../services/incidents'
 import { useToast } from '../components/Toast'
+import api from '../services/api'
 
 const SEVERITY_COLORS = {
   P1: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
@@ -97,6 +98,22 @@ export default function IncidentDetailPage() {
     finally { setAddingLog(false) }
   }
 
+  const downloadPostMortem = async () => {
+    try {
+      const data = await api.get(`/incidents/${id}/postmortem`).then(r => r.data)
+      const blob = new Blob([data.markdown], { type: 'text/markdown' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `postmortem-${data.ticket_number || id}.md`
+      a.click()
+      URL.revokeObjectURL(url)
+      addToast('Post-mortem report downloaded', 'success')
+    } catch (err) {
+      addToast('Failed to generate post-mortem', 'error')
+    }
+  }
+
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
@@ -136,15 +153,20 @@ export default function IncidentDetailPage() {
           </div>
           <p className="text-dark-200 mt-1">{incident.title}</p>
         </div>
-        {incident.status !== 'AI_ANALYZED' && incident.status !== 'RESOLVED' && incident.status !== 'CLOSED' && (
-          <button onClick={handleAnalyze} disabled={analyzing} className="btn-primary flex items-center gap-2 bg-gradient-to-r from-violet-600 to-violet-500 shadow-glow-violet">
-            {analyzing ? (
-              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Analyzing...</>
-            ) : (
-              <><Sparkles className="w-4 h-4" /> AI Analyze</>
-            )}
+        <div className="flex gap-2">
+          <button onClick={downloadPostMortem} className="btn-ghost flex items-center gap-2">
+            <FileText className="w-4 h-4" /> Post-Mortem
           </button>
-        )}
+          {incident.status !== 'AI_ANALYZED' && incident.status !== 'RESOLVED' && incident.status !== 'CLOSED' && (
+            <button onClick={handleAnalyze} disabled={analyzing} className="btn-primary flex items-center gap-2 bg-gradient-to-r from-violet-600 to-violet-500 shadow-glow-violet">
+              {analyzing ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Analyzing...</>
+              ) : (
+                <><Sparkles className="w-4 h-4" /> AI Analyze</>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

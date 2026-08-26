@@ -253,6 +253,67 @@ export default function AnalyticsPage() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Historical Trend - 30 Day */}
+      <div className="glass-card p-6">
+        <h3 className="text-sm font-semibold text-dark-100 mb-4 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-cyan-400" /> 30-Day Trend
+        </h3>
+        <div className="h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={(() => {
+              const days = []
+              for (let d = 29; d >= 0; d--) {
+                const date = new Date()
+                date.setDate(date.getDate() - d)
+                const dayStr = date.toISOString().split('T')[0]
+                const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                const count = incidents.filter(i => i.createdAt && i.createdAt.startsWith(dayStr)).length
+                const resolvedCount = incidents.filter(i => i.resolvedAt && i.resolvedAt.startsWith(dayStr)).length
+                days.push({ day: label, created: count, resolved: resolvedCount })
+              }
+              return days
+            })()} barSize={12}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="day" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} interval={4} />
+              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
+              <Bar dataKey="created" fill="#06b6d4" radius={[3, 3, 0, 0]} name="Created" />
+              <Bar dataKey="resolved" fill="#10b981" radius={[3, 3, 0, 0]} name="Resolved" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Component Impact Frequency */}
+      <div className="glass-card p-6">
+        <h3 className="text-sm font-semibold text-dark-100 mb-4 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-rose-400" /> Most Affected Components
+        </h3>
+        <div className="space-y-2">
+          {(() => {
+            const compCounts = {}
+            incidents.forEach(i => { compCounts[i.affectedComponent] = (compCounts[i.affectedComponent] || 0) + 1 })
+            const sorted = Object.entries(compCounts).sort((a, b) => b[1] - a[1]).slice(0, 8)
+            const maxCount = sorted.length > 0 ? sorted[0][1] : 1
+            return sorted.map(([name, count], i) => (
+              <div key={name} className="flex items-center gap-3">
+                <span className="text-xs text-dark-200 w-32 truncate">{name}</span>
+                <div className="flex-1 h-2 bg-dark-700 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(count / maxCount) * 100}%` }}
+                    transition={{ duration: 0.6, delay: i * 0.05 }}
+                    className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full"
+                  />
+                </div>
+                <span className="text-xs font-medium text-white w-6 text-right">{count}</span>
+              </div>
+            ))
+          })()}
+        </div>
+      </div>
     </div>
   )
 }

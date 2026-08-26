@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 
 import com.swapnil.incident.auth.User;
 import com.swapnil.incident.auth.UserRepository;
+import com.swapnil.incident.oncall.OnCallSchedule;
+import com.swapnil.incident.oncall.OnCallScheduleRepository;
+import com.swapnil.incident.servicemap.ServiceDependency;
+import com.swapnil.incident.servicemap.ServiceDependencyRepository;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -23,16 +27,20 @@ public class DataSeeder implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private OnCallScheduleRepository onCallRepository;
+
+    @Autowired
+    private ServiceDependencyRepository serviceDependencyRepository;
+
     private final Random random = new Random();
 
     @Override
     public void run(String... args) {
-        if (userRepository.count() == 0) {
-            seedUsers();
-        }
-        if (incidentRepository.count() == 0) {
-            seedIncidents();
-        }
+        if (userRepository.count() == 0) seedUsers();
+        if (incidentRepository.count() == 0) seedIncidents();
+        if (onCallRepository.count() == 0) seedOnCall();
+        if (serviceDependencyRepository.count() == 0) seedServiceMap();
     }
 
     private void seedUsers() {
@@ -130,15 +138,81 @@ public class DataSeeder implements CommandLineRunner {
                 incident.setAiConfidenceScore(0.75 + (random.nextDouble() * 0.20));
             }
 
-            incidentRepository.save(incident);
-
             Log seedLog = new Log();
             seedLog.setIncident(incident);
             seedLog.setTimestamp(incident.getCreatedAt());
             seedLog.setAuthor("system");
             seedLog.setMessage("Incident created via " + data[4] + " source");
             incident.getLogs().add(seedLog);
+
             incidentRepository.save(incident);
+        }
+    }
+
+    private void seedOnCall() {
+        OnCallSchedule current = new OnCallSchedule();
+        current.setUsername("admin");
+        current.setRole("PRIMARY");
+        current.setStartTime(LocalDateTime.now().minusHours(6));
+        current.setEndTime(LocalDateTime.now().plusHours(18));
+        current.setCreatedAt(LocalDateTime.now().minusHours(24));
+        onCallRepository.save(current);
+
+        OnCallSchedule secondary = new OnCallSchedule();
+        secondary.setUsername("engineer");
+        secondary.setRole("SECONDARY");
+        secondary.setStartTime(LocalDateTime.now().plusHours(18));
+        secondary.setEndTime(LocalDateTime.now().plusHours(42));
+        secondary.setCreatedAt(LocalDateTime.now().minusHours(24));
+        onCallRepository.save(secondary);
+
+        OnCallSchedule past = new OnCallSchedule();
+        past.setUsername("engineer");
+        past.setRole("PRIMARY");
+        past.setStartTime(LocalDateTime.now().minusHours(30));
+        past.setEndTime(LocalDateTime.now().minusHours(6));
+        past.setCreatedAt(LocalDateTime.now().minusHours(48));
+        onCallRepository.save(past);
+    }
+
+    private void seedServiceMap() {
+        Object[][] deps = {
+                {"API Gateway", "Payment Service", "sync", "Primary payment processing", 45, 2.1},
+                {"API Gateway", "Order Service", "sync", "Order management", 30, 1.5},
+                {"API Gateway", "User Service", "sync", "User authentication", 20, 0.8},
+                {"API Gateway", "Search Service", "sync", "Product search", 120, 3.2},
+                {"Payment Service", "PostgreSQL Primary", "sync", "Transaction data", 15, 0.5},
+                {"Payment Service", "Redis Cluster", "cache", "Session & rate limiting", 5, 0.2},
+                {"Order Service", "PostgreSQL Primary", "sync", "Order persistence", 18, 0.8},
+                {"Order Service", "Redis Cluster", "cache", "Order cache", 5, 0.3},
+                {"Order Service", "Email Service", "async", "Order confirmation emails", 200, 1.0},
+                {"User Service", "PostgreSQL Primary", "sync", "User data", 12, 0.4},
+                {"User Service", "SSO Service", "sync", "Authentication", 35, 1.8},
+                {"SSO Service", "JWT Service", "sync", "Token validation", 8, 0.1},
+                {"Search Service", "ElasticSearch", "sync", "Full-text search", 80, 2.5},
+                {"Email Service", "SMTP Gateway", "async", "Email delivery", 500, 0.5},
+                {"CI/CD Pipeline", "API Gateway", "sync", "Deployment health checks", 60, 0.0},
+                {"K8s Cluster", "API Gateway", "infra", "Container orchestration", 2, 0.1},
+                {"K8s Cluster", "PostgreSQL Primary", "infra", "Database hosting", 2, 0.1},
+                {"K8s Cluster", "Redis Cluster", "infra", "Cache hosting", 2, 0.1},
+                {"Load Balancer", "API Gateway", "infra", "Traffic routing", 1, 0.2},
+                {"Load Balancer", "K8s Cluster", "infra", "Service discovery", 3, 0.1},
+                {"Core Router 01", "Load Balancer", "infra", "Network backbone", 1, 0.3},
+                {"Firewall Cluster", "Core Router 01", "infra", "Security perimeter", 5, 0.4},
+                {"CDN Cache Invalidation", "Search Service", "async", "Cache invalidation", 300, 1.2},
+                {"Log Pipeline", "ElasticSearch", "async", "Log aggregation", 900, 0.8},
+                {"Analytics DB", "PostgreSQL Primary", "sync", "Data warehousing", 120, 2.0},
+        };
+
+        for (Object[] dep : deps) {
+            ServiceDependency d = new ServiceDependency();
+            d.setSourceService((String) dep[0]);
+            d.setTargetService((String) dep[1]);
+            d.setDependencyType((String) dep[2]);
+            d.setDescription((String) dep[3]);
+            d.setLatencyMs((Integer) dep[4]);
+            d.setErrorRate((Double) dep[5]);
+            serviceDependencyRepository.save(d);
         }
     }
 }
