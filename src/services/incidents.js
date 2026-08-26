@@ -38,6 +38,16 @@ export const getIncidentLogs = async (incidentId) => {
   return response.data
 }
 
+export const updateIncidentStatus = async (id, status) => {
+  const response = await api.put(`/incidents/${id}`, { status })
+  return response.data
+}
+
+export const addIncidentLog = async (incidentId, message, author) => {
+  const response = await api.post(`/incidents/${incidentId}/logs`, { message, author })
+  return response.data
+}
+
 export const analyzeIncident = async (id) => {
   const response = await api.post(`/ai/analyze/${id}`)
   return response.data

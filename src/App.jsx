@@ -4,6 +4,8 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import IncidentListPage from './pages/IncidentListPage'
 import IncidentDetailPage from './pages/IncidentDetailPage'
+import AiChatPage from './pages/AiChatPage'
+import GameDayPage from './pages/GameDayPage'
 import Layout from './components/Layout'
 
 function ProtectedRoute({ children }) {
@@ -22,9 +24,7 @@ export default function App() {
     }
   }, [])
 
-  const handleLogin = (userData) => {
-    setUser(userData)
-  }
+  const handleLogin = (userData) => setUser(userData)
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -56,6 +56,20 @@ export default function App() {
           <ProtectedRoute>
             <Layout user={user} onLogout={handleLogout}>
               <IncidentDetailPage />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-chat" element={
+          <ProtectedRoute>
+            <Layout user={user} onLogout={handleLogout}>
+              <AiChatPage />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/game-day" element={
+          <ProtectedRoute>
+            <Layout user={user} onLogout={handleLogout}>
+              <GameDayPage />
             </Layout>
           </ProtectedRoute>
         } />

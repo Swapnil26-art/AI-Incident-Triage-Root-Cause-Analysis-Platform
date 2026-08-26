@@ -1,64 +1,142 @@
 import { Link, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { LayoutDashboard, AlertTriangle, Brain, Gamepad2, LogOut, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { path: '/incidents', label: 'Incidents', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z' },
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/incidents', label: 'Incidents', icon: AlertTriangle },
+  { path: '/ai-chat', label: 'AI Copilot', icon: Brain },
+  { path: '/game-day', label: 'Game Day', icon: Gamepad2 },
 ]
+
+const roleColors = {
+  ROLE_ADMIN: 'from-rose-500/20 to-orange-500/10 text-rose-400 border-rose-500/20',
+  ROLE_ENGINEER: 'from-cyan-500/20 to-blue-500/10 text-cyan-400 border-cyan-500/20',
+  ROLE_VIEWER: 'from-violet-500/20 to-purple-500/10 text-violet-400 border-violet-500/20',
+}
 
 export default function Layout({ children, user, onLogout }) {
   const location = useLocation()
+  const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-6 border-b border-gray-700">
-          <h1 className="text-xl font-bold text-blue-400">AI Incident Triage</h1>
-          <p className="text-xs text-gray-400 mt-1">Root Cause Analysis Platform</p>
+    <div className="min-h-screen flex bg-dark-900">
+      <div className="noise-overlay" />
+
+      {/* Sidebar */}
+      <motion.aside
+        animate={{ width: collapsed ? 72 : 256 }}
+        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        className="relative flex flex-col border-r border-white/[0.06] bg-dark-800/40 backdrop-blur-xl z-10"
+      >
+        {/* Logo */}
+        <div className="p-4 flex items-center gap-3 border-b border-white/[0.06]">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center flex-shrink-0 shadow-glow-cyan">
+            <Shield className="w-5 h-5 text-white" />
+          </div>
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <h1 className="text-sm font-bold text-white whitespace-nowrap">Incident Triage</h1>
+                <p className="text-[10px] text-dark-200 whitespace-nowrap">AI Root Cause Analysis</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                location.pathname === item.path
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-              </svg>
-              {item.label}
-            </Link>
-          ))}
+        {/* Nav */}
+        <nav className="flex-1 p-3 space-y-1">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path ||
+              (item.path !== '/' && location.pathname.startsWith(item.path))
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="whitespace-nowrap"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Link>
+            )
+          })}
         </nav>
 
-        <div className="p-4 border-t border-gray-700">
-          <div className="flex items-center gap-3 px-4 py-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+        {/* Collapse toggle */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-20 w-6 h-6 bg-dark-700 border border-white/10 rounded-full flex items-center justify-center text-dark-300 hover:text-white hover:border-cyan-500/30 transition-all z-20"
+        >
+          {collapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+        </button>
+
+        {/* User section */}
+        <div className="p-3 border-t border-white/[0.06]">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
               {user?.username?.[0]?.toUpperCase() || 'U'}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.username || 'User'}</p>
-              <p className="text-xs text-gray-400">{user?.role?.replace('ROLE_', '') || 'VIEWER'}</p>
-            </div>
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 min-w-0"
+                >
+                  <p className="text-sm font-medium text-white truncate">{user?.username || 'User'}</p>
+                  <span className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-gradient-to-r ${roleColors[user?.role] || roleColors.ROLE_VIEWER}`}>
+                    {user?.role?.replace('ROLE_', '') || 'VIEWER'}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <button
             onClick={onLogout}
-            className="mt-2 w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+            className="mt-1 w-full flex items-center gap-2 px-3 py-2 text-sm text-dark-300 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all duration-200"
+            title={collapsed ? 'Logout' : undefined}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Logout
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  Logout
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
         </div>
-      </aside>
+      </motion.aside>
 
+      {/* Main */}
       <main className="flex-1 overflow-auto">
-        {children}
+        <div className="p-8 max-w-[1600px] mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   )

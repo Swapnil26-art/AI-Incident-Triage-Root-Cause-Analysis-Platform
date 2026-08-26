@@ -20,6 +20,64 @@ public class AiController {
 
     private final Random random = new Random();
 
+    @PostMapping("/chat")
+    public ResponseEntity<?> chat(@RequestBody Map<String, Object> request) {
+        String message = (String) request.getOrDefault("message", "");
+        String response = generateChatResponse(message);
+        return ResponseEntity.ok(Map.of("response", response));
+    }
+
+    private String generateChatResponse(String message) {
+        String q = message.toLowerCase();
+
+        if (q.contains("critical") || q.contains("p1") || q.contains("urgent")) {
+            var p1 = incidentRepository.findBySeverity(Incident.Severity.P1);
+            if (p1.isEmpty()) return "There are currently no P1 critical incidents. The infrastructure appears healthy.";
+            StringBuilder sb = new StringBuilder("**P1 Critical Incidents (" + p1.size() + "):**\n\n");
+            for (var inc : p1) {
+                sb.append("- **").append(inc.getTicketNumber()).append("**: ").append(inc.getTitle())
+                  .append("\n  Component: ").append(inc.getAffectedComponent())
+                  .append(" | Status: ").append(inc.getStatus()).append("\n\n");
+            }
+            sb.append("**Recommendation:** Focus on the oldest P1 incident first. Escalate if investigation has been ongoing for more than 2 hours.");
+            return sb.toString();
+        }
+
+        if (q.contains("open") || q.contains("outstanding")) {
+            var open = incidentRepository.findByStatus(Incident.Status.OPEN);
+            StringBuilder sb = new StringBuilder("**Open Incidents Summary (" + open.size() + "):**\n\n");
+            for (var inc : open) {
+                sb.append("- **").append(inc.getTicketNumber()).append("** (").append(inc.getSeverity())
+                  .append(") - ").append(inc.getAffectedComponent()).append(": ").append(inc.getTitle()).append("\n");
+            }
+            sb.append("\n**Priority:** Address P1/P2 incidents before they escalate.");
+            return sb.toString();
+        }
+
+        if (q.contains("network")) {
+            var net = incidentRepository.findByCategory(Incident.Category.NETWORK);
+            StringBuilder sb = new StringBuilder("**Network Incidents (" + net.size() + "):**\n\n");
+            for (var inc : net) {
+                sb.append("- **").append(inc.getTicketNumber()).append("** (").append(inc.getSeverity())
+                  .append(") - ").append(inc.getStatus()).append(": ").append(inc.getTitle()).append("\n");
+            }
+            return sb.toString();
+        }
+
+        if (q.contains("runbook")) {
+            return "**Incident Response Runbook:**\n\n" +
+                "**Step 1: Triage**\n- Confirm the incident is valid\n- Determine severity\n- Assign an owner\n\n" +
+                "**Step 2: Investigate**\n- Check monitoring dashboards\n- Review recent deployments\n- Examine logs\n\n" +
+                "**Step 3: Mitigate**\n- Rollback if recent deployment caused it\n- Scale up if under load\n\n" +
+                "**Step 4: Resolve**\n- Implement the fix\n- Verify in production\n- Monitor for 30 minutes\n\n" +
+                "**Step 5: Document**\n- Update with root cause\n- Create post-mortem if P1/P2";
+        }
+
+        long total = incidentRepository.count();
+        return "I can help you analyze your " + total + " incidents. Try asking about:\n\n" +
+            "- Critical/P1 incidents\n- Open incidents\n- Network issues\n- Runbooks\n- Patterns and trends";
+    }
+
     @PostMapping("/analyze/{id}")
     public ResponseEntity<?> analyzeIncident(@PathVariable Long id) {
         return incidentRepository.findById(id).map(incident -> {
