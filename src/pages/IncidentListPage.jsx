@@ -115,7 +115,7 @@ export default function IncidentListPage() {
         <div className="glass-card p-8 text-center">
           <AlertTriangle className="w-10 h-10 text-rose-400 mx-auto mb-3" />
           <p className="text-dark-200 text-sm mb-4">{error}</p>
-          <button onClick={() => { setError(null); setLoading(true); getIncidents(filters).then(setIncidents).catch(setError).finally(() => setLoading(false)) }} className="btn-primary">
+          <button onClick={() => { setError(null); setLoading(true); getIncidents(filters).then(setIncidents).catch(err => setError(err.displayMessage || 'Failed to load incidents')).finally(() => setLoading(false)) }} className="btn-primary">
             Retry
           </button>
         </div>
@@ -123,7 +123,7 @@ export default function IncidentListPage() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-3 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
         </div>
       ) : (
         <div className="space-y-2">

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts'
-import { BarChart3, Clock, Target, TrendingUp, AlertTriangle, Calendar, Download } from 'lucide-react'
+import { BarChart3, Target, TrendingUp, AlertTriangle, Calendar, Download } from 'lucide-react'
 import { getIncidents } from '../services/incidents'
-import { getDashboardMetrics } from '../services/dashboard'
 import { SkeletonChart } from '../components/Skeleton'
 
 const COLORS = { P1: '#f43f5e', P2: '#f59e0b', P3: '#06b6d4', P4: '#10b981' }
@@ -47,12 +46,11 @@ function GaugeRing({ value, max, label, color, unit = '' }) {
 
 export default function AnalyticsPage() {
   const [incidents, setIncidents] = useState([])
-  const [metrics, setMetrics] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([getIncidents(), getDashboardMetrics()])
-      .then(([inc, m]) => { setIncidents(inc); setMetrics(m) })
+    getIncidents()
+      .then(setIncidents)
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])

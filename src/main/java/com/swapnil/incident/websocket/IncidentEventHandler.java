@@ -3,7 +3,6 @@ package com.swapnil.incident.websocket;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +17,11 @@ public class IncidentEventHandler {
     public void broadcastIncidentUpdate(Incident incident, String eventType) {
         Map<String, Object> payload = Map.of(
                 "eventType", eventType,
-                "incident", incident,
-                "ticketNumber", incident.getTicketNumber(),
-                "status", incident.getStatus().name(),
-                "severity", incident.getSeverity().name()
+                "ticketNumber", incident.getTicketNumber() != null ? incident.getTicketNumber() : "",
+                "status", incident.getStatus() != null ? incident.getStatus().name() : "UNKNOWN",
+                "severity", incident.getSeverity() != null ? incident.getSeverity().name() : "UNKNOWN",
+                "title", incident.getTitle() != null ? incident.getTitle() : "",
+                "timestamp", java.time.LocalDateTime.now().toString()
         );
         messagingTemplate.convertAndSend("/topic/incidents", payload);
     }

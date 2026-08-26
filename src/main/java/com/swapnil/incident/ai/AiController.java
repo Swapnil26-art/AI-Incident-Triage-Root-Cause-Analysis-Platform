@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import com.swapnil.incident.Incident;
 import com.swapnil.incident.IncidentRepository;
 import com.swapnil.incident.Log;
+import com.swapnil.incident.websocket.IncidentEventHandler;
 
 @RestController
 @RequestMapping("/api/ai")
@@ -17,6 +18,9 @@ public class AiController {
 
     @Autowired
     private IncidentRepository incidentRepository;
+
+    @Autowired
+    private IncidentEventHandler eventHandler;
 
     private final Random random = new Random();
 
@@ -64,18 +68,83 @@ public class AiController {
             return sb.toString();
         }
 
-        if (q.contains("runbook")) {
+        if (q.contains("database") || q.contains("db")) {
+            var db = incidentRepository.findByCategory(Incident.Category.DATABASE);
+            StringBuilder sb = new StringBuilder("**Database Incidents (" + db.size() + "):**\n\n");
+            for (var inc : db) {
+                sb.append("- **").append(inc.getTicketNumber()).append("** (").append(inc.getSeverity())
+                  .append(") - ").append(inc.getStatus()).append(": ").append(inc.getTitle()).append("\n");
+            }
+            return sb.toString();
+        }
+
+        if (q.contains("security") || q.contains("auth")) {
+            var auth = incidentRepository.findByCategory(Incident.Category.AUTHENTICATION);
+            StringBuilder sb = new StringBuilder("**Security/Auth Incidents (" + auth.size() + "):**\n\n");
+            for (var inc : auth) {
+                sb.append("- **").append(inc.getTicketNumber()).append("** (").append(inc.getSeverity())
+                  .append(") - ").append(inc.getStatus()).append(": ").append(inc.getTitle()).append("\n");
+            }
+            return sb.toString();
+        }
+
+        if (q.contains("resolved") || q.contains("closed")) {
+            var resolved = incidentRepository.findByStatus(Incident.Status.RESOLVED);
+            var closed = incidentRepository.findByStatus(Incident.Status.CLOSED);
+            int total = resolved.size() + closed.size();
+            return "**Resolved/Closed Incidents (" + total + "):**\n\n" +
+                   "- Resolved: " + resolved.size() + "\n" +
+                   "- Closed: " + closed.size() + "\n\n" +
+                   "**Insights:** " + (total > 0 ? "Your team is resolving incidents effectively." : "No resolved incidents yet — keep investigating!");
+        }
+
+        if (q.contains("runbook") || q.contains("playbook")) {
             return "**Incident Response Runbook:**\n\n" +
                 "**Step 1: Triage**\n- Confirm the incident is valid\n- Determine severity\n- Assign an owner\n\n" +
                 "**Step 2: Investigate**\n- Check monitoring dashboards\n- Review recent deployments\n- Examine logs\n\n" +
-                "**Step 3: Mitigate**\n- Rollback if recent deployment caused it\n- Scale up if under load\n\n" +
+                "**Step 3: Mitigate**\n- Rollback if recent deployment caused it\n- Scale up if under load\n- Enable circuit breakers\n\n" +
                 "**Step 4: Resolve**\n- Implement the fix\n- Verify in production\n- Monitor for 30 minutes\n\n" +
                 "**Step 5: Document**\n- Update with root cause\n- Create post-mortem if P1/P2";
         }
 
+        if (q.contains("sla") || q.contains("compliance")) {
+            long total = incidentRepository.count();
+            long p1Count = incidentRepository.countBySeverity(Incident.Severity.P1);
+            long resolved = incidentRepository.countByStatus(Incident.Status.RESOLVED);
+            long escalated = incidentRepository.countByStatus(Incident.Status.ESCALATED);
+            return "**SLA Compliance Report:**\n\n" +
+                   "- Total incidents: " + total + "\n" +
+                   "- P1 Critical: " + p1Count + "\n" +
+                   "- Resolved: " + resolved + "\n" +
+                   "- Escalated: " + escalated + "\n\n" +
+                   "**SLA Targets:**\n" +
+                   "- P1: Resolve within 2 hours\n" +
+                   "- P2: Resolve within 4 hours\n" +
+                   "- P3: Resolve within 8 hours\n" +
+                   "- P4: Resolve within 48 hours";
+        }
+
+        if (q.contains("trend") || q.contains("pattern")) {
+            long total = incidentRepository.count();
+            var network = incidentRepository.findByCategory(Incident.Category.NETWORK);
+            var app = incidentRepository.findByCategory(Incident.Category.APPLICATION);
+            var db = incidentRepository.findByCategory(Incident.Category.DATABASE);
+            return "**Incident Trends:**\n\n" +
+                   "- Total incidents: " + total + "\n" +
+                   "- Network: " + network.size() + "\n" +
+                   "- Application: " + app.size() + "\n" +
+                   "- Database: " + db.size() + "\n\n" +
+                   "**Tip:** Network and Database incidents tend to have the highest blast radius. Consider adding redundancy.";
+        }
+
         long total = incidentRepository.count();
         return "I can help you analyze your " + total + " incidents. Try asking about:\n\n" +
-            "- Critical/P1 incidents\n- Open incidents\n- Network issues\n- Runbooks\n- Patterns and trends";
+            "- Critical/P1 incidents\n" +
+            "- Open incidents\n" +
+            "- Network/Database/Security issues\n" +
+            "- SLA compliance\n" +
+            "- Trends and patterns\n" +
+            "- Runbooks and playbooks";
     }
 
     @PostMapping("/analyze/{id}")
@@ -89,16 +158,16 @@ public class AiController {
             incident.setStatus(Incident.Status.AI_ANALYZED);
             incident.setUpdatedAt(LocalDateTime.now());
 
-            incidentRepository.save(incident);
-
             Log aiLog = new Log();
             aiLog.setIncident(incident);
             aiLog.setTimestamp(LocalDateTime.now());
             aiLog.setAuthor("AI-ANALYSIS");
-            aiLog.setMessage("AI Analysis completed. Root Cause: " + analysis.get("root_cause")
-                    + " | Confidence: " + String.format("%.1f%%", (Double) analysis.get("confidence_score") * 100));
+            aiLog.setMessage("AI Analysis completed. Confidence: " + String.format("%.1f%%", (Double) analysis.get("confidence_score") * 100));
             incident.getLogs().add(aiLog);
-            incidentRepository.save(incident);
+
+            Incident saved = incidentRepository.save(incident);
+            eventHandler.broadcastIncidentUpdate(saved, "AI_ANALYZED");
+            eventHandler.broadcastDashboardUpdate();
 
             return ResponseEntity.ok(analysis);
         }).orElseGet(() -> ResponseEntity.notFound().build());

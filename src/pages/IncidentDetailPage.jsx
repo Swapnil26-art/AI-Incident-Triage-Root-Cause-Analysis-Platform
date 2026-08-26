@@ -99,7 +99,7 @@ export default function IncidentDetailPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
-      <div className="w-10 h-10 border-3 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+      <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
     </div>
   )
 
@@ -285,7 +285,7 @@ export default function IncidentDetailPage() {
                   key={status}
                   onClick={() => handleStatusChange(status)}
                   disabled={incident.status === status || updatingStatus}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                  className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 group ${
                     incident.status === status
                       ? 'bg-white/5 text-dark-400 cursor-not-allowed'
                       : 'hover:bg-white/5 text-dark-200 hover:text-white'

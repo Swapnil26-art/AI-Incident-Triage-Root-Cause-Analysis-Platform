@@ -79,7 +79,7 @@ export default function DashboardPage() {
   if (loading) return (
     <div className="flex items-center justify-center h-[60vh]">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-3 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+        <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
         <p className="text-dark-200 text-sm">Loading dashboard...</p>
       </div>
     </div>
@@ -122,7 +122,7 @@ export default function DashboardPage() {
               className="metric-card group cursor-default"
             >
               <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
-                <Icon className={`w-4.5 h-4.5 ${s.color}`} />
+                <Icon className={`w-5 h-5 ${s.color}`} />
               </div>
               <p className="text-2xl font-bold text-white">{s.value}</p>
               <p className="text-xs text-dark-200 mt-0.5">{s.label}</p>

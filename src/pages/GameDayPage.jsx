@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Pause, RotateCcw, Zap, AlertTriangle, Clock, CheckCircle2, TrendingUp } from 'lucide-react'
-import { createIncident, getIncidents } from '../services/incidents'
+import { Play, RotateCcw, Zap, Clock, CheckCircle2 } from 'lucide-react'
+import { createIncident } from '../services/incidents'
 
 const SCENARIOS = [
   {
     name: 'Network Outage',
     description: 'Cascading network failure affecting multiple regions',
-    icon: 'Network',
     incidents: [
       { severity: 'P1', category: 'NETWORK', title: 'Core Router Failure', component: 'Core Router 01', description: 'Primary core router experiencing hardware failure, all traffic failing over to secondary' },
       { severity: 'P1', category: 'NETWORK', title: 'BGP Session Flap', component: 'Border Gateway', description: 'BGP sessions flapping across all peering points, causing routing instability' },
@@ -18,7 +17,6 @@ const SCENARIOS = [
   {
     name: 'Database Crisis',
     description: 'Database cluster failure with data replication issues',
-    icon: 'Database',
     incidents: [
       { severity: 'P1', category: 'DATABASE', title: 'Primary DB Crash', component: 'PostgreSQL Primary', description: 'Primary database node unresponsive, automatic failover triggered' },
       { severity: 'P1', category: 'DATABASE', title: 'Replication Lag Critical', component: 'PostgreSQL Replica', description: 'Read replicas 5+ minutes behind, data inconsistency risk' },
@@ -28,7 +26,6 @@ const SCENARIOS = [
   {
     name: 'Security Incident',
     description: 'Suspected breach with auth system compromise',
-    icon: 'Shield',
     incidents: [
       { severity: 'P1', category: 'AUTHENTICATION', title: 'Suspected Credential Leak', component: 'SSO Service', description: 'Abnormal login patterns detected from multiple geographic regions' },
       { severity: 'P1', category: 'INFRASTRUCTURE', title: 'Unauthorized Access Detected', component: 'WAF', description: 'WAF blocking suspicious requests from known malicious IPs' },
@@ -39,7 +36,6 @@ const SCENARIOS = [
   {
     name: 'Deploy Disaster',
     description: 'Bad deployment causing cascading failures',
-    icon: 'Rocket',
     incidents: [
       { severity: 'P1', category: 'APPLICATION', title: 'Production Deployment v3.2.0 Failed', component: 'Payment Service', description: 'New deployment causing 500 errors on all payment processing endpoints' },
       { severity: 'P2', category: 'APPLICATION', title: 'Memory Leak Detected', component: 'User Service', description: 'Memory usage climbing steadily since last deployment, OOM kills imminent' },
@@ -49,13 +45,12 @@ const SCENARIOS = [
 ]
 
 export default function GameDayPage() {
-  const [running, setRunning] = useState(false)
-  const [paused, setPaused] = useState(false)
+  const runningRef = useRef(false)
+  const [phase, setPhase] = useState('idle')
   const [selectedScenario, setSelectedScenario] = useState(null)
-  const [phase, setPhase] = useState('idle') // idle, simulating, complete
   const [createdIncidents, setCreatedIncidents] = useState([])
   const [currentStep, setCurrentStep] = useState(0)
-  const [stats, setStats] = useState({ created: 0, resolved: 0, elapsed: 0 })
+  const [stats, setStats] = useState({ created: 0, elapsed: 0 })
   const timerRef = useRef(null)
   const startTimeRef = useRef(null)
 
@@ -64,19 +59,19 @@ export default function GameDayPage() {
     setPhase('simulating')
     setCreatedIncidents([])
     setCurrentStep(0)
-    setRunning(true)
-    setPaused(false)
+    runningRef.current = true
     startTimeRef.current = Date.now()
-    setStats({ created: 0, resolved: 0, elapsed: 0 })
+    setStats({ created: 0, elapsed: 0 })
 
     timerRef.current = setInterval(() => {
       setStats(prev => ({ ...prev, elapsed: Math.floor((Date.now() - startTimeRef.current) / 1000) }))
     }, 1000)
 
     for (let i = 0; i < scenario.incidents.length; i++) {
-      if (!running) break
+      if (!runningRef.current) break
       setCurrentStep(i)
       await new Promise(r => setTimeout(r, 2000))
+      if (!runningRef.current) break
       try {
         const inc = await createIncident(scenario.incidents[i])
         setCreatedIncidents(prev => [...prev, inc])
@@ -86,23 +81,22 @@ export default function GameDayPage() {
       }
     }
 
+    runningRef.current = false
     setPhase('complete')
-    setRunning(false)
     clearInterval(timerRef.current)
   }
 
   const reset = () => {
+    runningRef.current = false
     setPhase('idle')
-    setRunning(false)
-    setPaused(false)
     setSelectedScenario(null)
     setCreatedIncidents([])
     setCurrentStep(0)
-    setStats({ created: 0, resolved: 0, elapsed: 0 })
+    setStats({ created: 0, elapsed: 0 })
     clearInterval(timerRef.current)
   }
 
-  useEffect(() => () => clearInterval(timerRef.current), [])
+  useEffect(() => () => { clearInterval(timerRef.current); runningRef.current = false }, [])
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
@@ -130,7 +124,7 @@ export default function GameDayPage() {
               key={i}
               whileHover={{ y: -2 }}
               onClick={() => startSimulation(scenario)}
-              className="glass-card-hover p-6 text-left"
+              className="glass-card-hover p-6 text-left group"
             >
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center flex-shrink-0 border border-amber-500/10">
@@ -141,13 +135,13 @@ export default function GameDayPage() {
                   <p className="text-sm text-dark-300 mb-3">{scenario.description}</p>
                   <div className="flex items-center gap-3 text-xs text-dark-400">
                     <span>{scenario.incidents.length} incidents</span>
-                    <span>•</span>
-                    <span>{scenario.incidents.filter(i => i.severity === 'P1').length} P1 Critical</span>
-                    <span>•</span>
+                    <span>·</span>
+                    <span>{scenario.incidents.filter(j => j.severity === 'P1').length} P1 Critical</span>
+                    <span>·</span>
                     <span>~{scenario.incidents.length * 2}s simulation</span>
                   </div>
                 </div>
-                <Play className="w-5 h-5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Play className="w-5 h-5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
               </div>
             </motion.button>
           ))}
@@ -156,12 +150,11 @@ export default function GameDayPage() {
 
       {(phase === 'simulating' || phase === 'complete') && (
         <div className="space-y-6">
-          {/* Stats bar */}
           <div className="glass-card p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${running ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                  <div className={`w-2 h-2 rounded-full ${phase === 'simulating' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
                   <span className="text-sm font-medium text-white">
                     {phase === 'simulating' ? 'Simulating...' : 'Complete'}
                   </span>
@@ -180,7 +173,6 @@ export default function GameDayPage() {
               </div>
             </div>
 
-            {/* Progress bar */}
             <div className="mt-3 h-1.5 bg-dark-700 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
@@ -190,7 +182,6 @@ export default function GameDayPage() {
             </div>
           </div>
 
-          {/* Created incidents */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-dark-100">Incidents Created</h3>
             <AnimatePresence>
@@ -219,7 +210,7 @@ export default function GameDayPage() {
 
             {createdIncidents.length === 0 && phase === 'simulating' && (
               <div className="text-center py-8">
-                <div className="w-8 h-8 border-3 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mx-auto" />
+                <div className="w-8 h-8 border-2 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mx-auto" />
                 <p className="text-dark-300 text-sm mt-3">Generating incidents...</p>
               </div>
             )}

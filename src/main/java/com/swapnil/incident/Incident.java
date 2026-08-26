@@ -72,7 +72,7 @@ public class Incident {
     @Column(name = "ai_confidence_score")
     private Double aiConfidenceScore;
 
-    @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Log> logs = new ArrayList<>();
 
     public enum Severity {

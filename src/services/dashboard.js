@@ -19,3 +19,13 @@ export const getIncidentsByStatus = async () => {
   const response = await api.get('/dashboard/incidents-by-status')
   return response.data
 }
+
+export const getSlaCompliance = async () => {
+  const response = await api.get('/dashboard/sla')
+  return response.data
+}
+
+export const getReportSummary = async () => {
+  const response = await api.get('/dashboard/reports/summary')
+  return response.data
+}
