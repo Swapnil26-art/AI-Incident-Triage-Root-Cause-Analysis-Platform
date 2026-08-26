@@ -2,7 +2,6 @@ package com.swapnil.incident;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +26,13 @@ public class IncidentController {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
-    private final AtomicLong ticketCounter = new AtomicLong(1000);
+    private java.util.concurrent.atomic.AtomicLong ticketCounter;
 
     private String generateTicketNumber() {
+        if (ticketCounter == null) {
+            Long maxNum = incidentRepository.getMaxTicketNumber();
+            ticketCounter = new java.util.concurrent.atomic.AtomicLong(maxNum);
+        }
         return "INC-" + String.format("%04d", ticketCounter.incrementAndGet());
     }
 
@@ -119,6 +122,7 @@ public class IncidentController {
         return ResponseEntity.ok(incidents);
     }
 
+    @Transactional
     @GetMapping("/{id}")
     public ResponseEntity<Incident> getIncidentById(@PathVariable Long id) {
         Optional<Incident> incident = incidentRepository.findById(id);

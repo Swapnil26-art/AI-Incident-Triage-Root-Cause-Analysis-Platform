@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, RotateCcw, Zap, Clock, CheckCircle2 } from 'lucide-react'
 import { createIncident } from '../services/incidents'
@@ -8,38 +9,38 @@ const SCENARIOS = [
     name: 'Network Outage',
     description: 'Cascading network failure affecting multiple regions',
     incidents: [
-      { severity: 'P1', category: 'NETWORK', title: 'Core Router Failure', component: 'Core Router 01', description: 'Primary core router experiencing hardware failure, all traffic failing over to secondary' },
-      { severity: 'P1', category: 'NETWORK', title: 'BGP Session Flap', component: 'Border Gateway', description: 'BGP sessions flapping across all peering points, causing routing instability' },
-      { severity: 'P2', category: 'APPLICATION', title: 'Downstream Service Degradation', component: 'API Gateway', description: 'API gateway latency spiking due to network path instability' },
-      { severity: 'P2', category: 'INFRASTRUCTURE', title: 'CDN Cache Invalidation', component: 'CloudFront CDN', description: 'CDN nodes unable to refresh cache from origin servers' },
+      { severity: 'P1', category: 'NETWORK', title: 'Core Router Failure', affectedComponent: 'Core Router 01', description: 'Primary core router experiencing hardware failure, all traffic failing over to secondary' },
+      { severity: 'P1', category: 'NETWORK', title: 'BGP Session Flap', affectedComponent: 'Border Gateway', description: 'BGP sessions flapping across all peering points, causing routing instability' },
+      { severity: 'P2', category: 'APPLICATION', title: 'Downstream Service Degradation', affectedComponent: 'API Gateway', description: 'API gateway latency spiking due to network path instability' },
+      { severity: 'P2', category: 'INFRASTRUCTURE', title: 'CDN Cache Invalidation', affectedComponent: 'CloudFront CDN', description: 'CDN nodes unable to refresh cache from origin servers' },
     ]
   },
   {
     name: 'Database Crisis',
     description: 'Database cluster failure with data replication issues',
     incidents: [
-      { severity: 'P1', category: 'DATABASE', title: 'Primary DB Crash', component: 'PostgreSQL Primary', description: 'Primary database node unresponsive, automatic failover triggered' },
-      { severity: 'P1', category: 'DATABASE', title: 'Replication Lag Critical', component: 'PostgreSQL Replica', description: 'Read replicas 5+ minutes behind, data inconsistency risk' },
-      { severity: 'P2', category: 'APPLICATION', title: 'Connection Pool Exhaustion', component: 'Order Service', description: 'Connection pool exhausted across all application instances' },
+      { severity: 'P1', category: 'DATABASE', title: 'Primary DB Crash', affectedComponent: 'PostgreSQL Primary', description: 'Primary database node unresponsive, automatic failover triggered' },
+      { severity: 'P1', category: 'DATABASE', title: 'Replication Lag Critical', affectedComponent: 'PostgreSQL Replica', description: 'Read replicas 5+ minutes behind, data inconsistency risk' },
+      { severity: 'P2', category: 'APPLICATION', title: 'Connection Pool Exhaustion', affectedComponent: 'Order Service', description: 'Connection pool exhausted across all application instances' },
     ]
   },
   {
     name: 'Security Incident',
     description: 'Suspected breach with auth system compromise',
     incidents: [
-      { severity: 'P1', category: 'AUTHENTICATION', title: 'Suspected Credential Leak', component: 'SSO Service', description: 'Abnormal login patterns detected from multiple geographic regions' },
-      { severity: 'P1', category: 'INFRASTRUCTURE', title: 'Unauthorized Access Detected', component: 'WAF', description: 'WAF blocking suspicious requests from known malicious IPs' },
-      { severity: 'P2', category: 'AUTHENTICATION', title: 'Token Validation Failures', component: 'JWT Service', description: 'JWT tokens failing validation, users unable to authenticate' },
-      { severity: 'P2', category: 'API', title: 'Rate Limiting Engaged', component: 'API Gateway', description: 'Aggressive rate limiting activated due to suspected DDoS' },
+      { severity: 'P1', category: 'AUTHENTICATION', title: 'Suspected Credential Leak', affectedComponent: 'SSO Service', description: 'Abnormal login patterns detected from multiple geographic regions' },
+      { severity: 'P1', category: 'INFRASTRUCTURE', title: 'Unauthorized Access Detected', affectedComponent: 'WAF', description: 'WAF blocking suspicious requests from known malicious IPs' },
+      { severity: 'P2', category: 'AUTHENTICATION', title: 'Token Validation Failures', affectedComponent: 'JWT Service', description: 'JWT tokens failing validation, users unable to authenticate' },
+      { severity: 'P2', category: 'API', title: 'Rate Limiting Engaged', affectedComponent: 'API Gateway', description: 'Aggressive rate limiting activated due to suspected DDoS' },
     ]
   },
   {
     name: 'Deploy Disaster',
     description: 'Bad deployment causing cascading failures',
     incidents: [
-      { severity: 'P1', category: 'APPLICATION', title: 'Production Deployment v3.2.0 Failed', component: 'Payment Service', description: 'New deployment causing 500 errors on all payment processing endpoints' },
-      { severity: 'P2', category: 'APPLICATION', title: 'Memory Leak Detected', component: 'User Service', description: 'Memory usage climbing steadily since last deployment, OOM kills imminent' },
-      { severity: 'P2', category: 'API', title: 'Breaking API Change', component: 'REST API', description: 'API v3 response format breaking mobile client compatibility' },
+      { severity: 'P1', category: 'APPLICATION', title: 'Production Deployment v3.2.0 Failed', affectedComponent: 'Payment Service', description: 'New deployment causing 500 errors on all payment processing endpoints' },
+      { severity: 'P2', category: 'APPLICATION', title: 'Memory Leak Detected', affectedComponent: 'User Service', description: 'Memory usage climbing steadily since last deployment, OOM kills imminent' },
+      { severity: 'P2', category: 'API', title: 'Breaking API Change', affectedComponent: 'REST API', description: 'API v3 response format breaking mobile client compatibility' },
     ]
   }
 ]
@@ -228,7 +229,7 @@ export default function GameDayPage() {
               </p>
               <div className="flex gap-3 justify-center">
                 <button onClick={reset} className="btn-primary">Try Another Scenario</button>
-                <a href="/incidents" className="btn-ghost">View All Incidents</a>
+                <Link to="/incidents" className="btn-ghost">View All Incidents</Link>
               </div>
             </motion.div>
           )}

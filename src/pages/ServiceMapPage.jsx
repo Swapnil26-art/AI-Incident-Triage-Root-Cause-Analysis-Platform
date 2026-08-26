@@ -119,8 +119,8 @@ export default function ServiceMapPage() {
           <div className="w-10 h-10 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
         </div>
       ) : graph ? (
-        <div className="glass-card p-6 overflow-x-auto">
-          <svg width={svgWidth} height={svgHeight} className="mx-auto">
+          <div className="glass-card p-6 overflow-x-auto">
+           <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="mx-auto w-full h-auto" preserveAspectRatio="xMidYMid meet">
             <defs>
               <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
                 <polygon points="0 0, 8 3, 0 6" fill="#475569" />

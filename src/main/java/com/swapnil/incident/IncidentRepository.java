@@ -3,10 +3,14 @@ package com.swapnil.incident;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface IncidentRepository extends JpaRepository<Incident, Long> {
+
+    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(i.ticketNumber, 5) AS long)), 1000) FROM Incident i")
+    Long getMaxTicketNumber();
     List<Incident> findByCategory(Incident.Category category);
     List<Incident> findBySeverity(Incident.Severity severity);
     List<Incident> findByStatus(Incident.Status status);
