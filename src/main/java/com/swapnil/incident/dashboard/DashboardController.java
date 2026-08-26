@@ -188,7 +188,7 @@ public class DashboardController {
         report.put("avg_ai_confidence", avgConfidence.isPresent() ? Math.round(avgConfidence.getAsDouble() * 100.0) / 100.0 : 0);
 
         Map<String, Long> assigneeWorkload = all.stream()
-                .filter(i -> !["RESOLVED", "CLOSED"].contains(i.getStatus().name()))
+                .filter(i -> !Set.of("RESOLVED", "CLOSED").contains(i.getStatus().name()))
                 .filter(i -> i.getAssignedTo() != null)
                 .collect(Collectors.groupingBy(Incident::getAssignedTo, Collectors.counting()));
         report.put("active_workload", assigneeWorkload);
