@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(i.ticketNumber, 5) AS long)), 1000) FROM Incident i")
+    @Query(value = "SELECT COALESCE(MAX(CAST(SUBSTRING(i.ticketNumber, 5) AS BIGINT)), 1000) FROM INCIDENT i", nativeQuery = true)
     Long getMaxTicketNumber();
     List<Incident> findByCategory(Incident.Category category);
     List<Incident> findBySeverity(Incident.Severity severity);
